@@ -17,4 +17,13 @@ class BookController extends AbstractController
     {
         return $bookSer->getAllBooks();
     }
+    /**
+     * @Route("/book/{id}", name="update", methods={"POST"})
+     */
+    public function updateBook(BookService $bookSer): Response
+    {
+        return new Response(
+          'Okay'
+        );
+    }
 }
