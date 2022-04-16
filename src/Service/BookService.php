@@ -197,7 +197,7 @@ class BookService extends BookRepository
                 }
             }
             return new Response(
-                "Okay we delete some author",
+                "Okay we delete author",
                 Response::HTTP_OK,
                 ['content-type'=> 'json']
             );
