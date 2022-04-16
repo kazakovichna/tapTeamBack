@@ -177,7 +177,31 @@ class BookService extends BookRepository
     // Добавление автора, изменение имени автора, удаление автора.
     public function updateAuthorsOfBook(\stdClass $requestData,Book $book,AuthorRepository $authRep,EntityManagerInterface $entityManager)
     {
-//        if() {}
+        // Проверка на удаление элемента.
+        // Проверим и сравним длину входящих и имеющихся данных.
+        // Если не равны и входящий массив меньше, то найти того автора и отвязать его
+        if (count($requestData->book_authorList) < count($book->getAuthorList())) {
+            foreach ($book->getAuthorList() as $bookOne) {
+                $deletedAuth = null;
+                foreach ($requestData->book_authorList as $item => $auth) {
+                    if ($bookOne->getId() === $auth->author_id) {
+                        $deletedAuth = $auth->author_id;
+                        break;
+                    }
+                }
+                if ($deletedAuth === null) {
+                    $authToRemove = $authRep->findOneBy(['author_name'=>$bookOne->getAuthorName()]);
+
+                    $book->removeAuthorList($authToRemove);
+                    $entityManager->flush();
+                }
+            }
+            return new Response(
+                "Okay we delete some author",
+                Response::HTTP_OK,
+                ['content-type'=> 'json']
+            );
+        }
 
         foreach ($requestData->book_authorList as $auth) {
             $isAuthorExistInBook = false;
