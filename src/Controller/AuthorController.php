@@ -30,4 +30,16 @@ class AuthorController extends AbstractController
     {
         return $authSer->addAuthor($authRep, $request);
     }
+
+    /**
+     * @Route("/author/{id}", name="delete_author", methods={"DELETE"})
+     * @param AuthorService $authSer
+     * @param AuthorRepository $authRep
+     * @param $id
+     * @return Response
+     */
+    public function delete_author(AuthorService $authSer, AuthorRepository $authRep, $id): Response
+    {
+        return $authSer->deleteAuthor($authRep, $id);
+    }
 }

@@ -83,4 +83,34 @@ class AuthorService extends AuthorRepository
             ['content-type'=> 'json']
         );
     }
+
+    /**
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\ORMException
+     */
+    public function deleteAuthor(AuthorRepository $authRep, $id): Response
+    {
+        $deletedAuth = $authRep->findOneBy(['id'=>$id]);
+        if ($deletedAuth === null) {
+            return new Response(
+                "Author not found, maybe he is already deleted",
+                Response::HTTP_NOT_FOUND,
+                ['content-type'=> 'json']
+            );
+        }
+        $authRep->remove($deletedAuth, true);
+        if ($authRep->findOneBy(['id'=>$id]) !== null) {
+            return new Response(
+                "Author not deleted, some error here hah",
+                Response::HTTP_NOT_FOUND,
+                ['content-type'=> 'json']
+            );
+        }
+
+        return new Response(
+            "Author delete successfully",
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
+        );
+    }
 }
