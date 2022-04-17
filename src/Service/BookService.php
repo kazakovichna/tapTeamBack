@@ -46,6 +46,49 @@ class BookService extends BookRepository
         );
     }
 
+    /**
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\ORMException
+     */
+    public function addBook(BookRepository $bookRep, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $requestData = json_decode($request->getContent());
+        if ($requestData === null) {
+            return new Response(
+                'Empty Object Data Error 500',
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [['content-type'=> 'json']]
+            );
+        }
+
+        // Валидируем имя и год для добавление в бд
+        if ($requestData->book_name === null ||
+            strlen($requestData->book_name) === 0 ||
+            strlen($requestData->book_name) > 255 ||
+            $requestData->book_year === null ||
+            strlen($requestData->book_year) === 0 ||
+            strlen($requestData->book_year) > 4 ||
+            !preg_match("/^\d+$/", $requestData->book_year)) {
+            return new Response(
+                'Invalid Object Data Error 500',
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                [['content-type'=> 'json']]
+            );
+        }
+
+        $bookData = new Book();
+        $bookData->setBookName($requestData->book_name);
+        $bookData->setBookYear($requestData->book_year);
+
+        $bookRep->add($bookData, true);
+
+        return new Response(
+            "New Book added successfully",
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
+        );
+    }
+
     public function updateBook(Request $request, $id, $bookRep, $authRep, $entityManager): Response
     {
         // Получает тело запроса и проверяем что оно не пустое, так как нам нужно обновляться
@@ -100,7 +143,6 @@ class BookService extends BookRepository
         $deletedBook = $bookRep->findOneBy(["id"=>$id]);
         $bookRep->remove($deletedBook, true);
 
-//        echo "this is book name = ".$deletedBook->getBookName();
         if ($bookRep->findOneBy(["id"=>$id]) !== null) {
             echo "book isn't deleted success";
             return new Response(

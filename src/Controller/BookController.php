@@ -23,6 +23,19 @@ class BookController extends AbstractController
     }
 
     /**
+     * @Route("/book", name="addBook", methods={"POST"})
+     * @param BookService $bookSer
+     * @param BookRepository $bookRep
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function addBook(BookService $bookSer, BookRepository $bookRep, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        return $bookSer->addBook($bookRep,  $request, $entityManager);
+    }
+
+    /**
      * @Route("/book/{id}", name="update", methods={"POST"})
      * @param BookService $bookSer
      * @param Request $request
