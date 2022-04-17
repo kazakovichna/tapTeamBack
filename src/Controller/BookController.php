@@ -33,4 +33,17 @@ class BookController extends AbstractController
     {
         return $bookSer->updateBook($request, $id, $bookRep, $authRep, $entityManager);
     }
+
+    /**
+     * @Route("book/{id}", name="deleteBook", methods={"DELETE"})
+     * @param BookService $bookSer
+     * @param BookRepository $bookRep
+     * @param EntityManagerInterface $entityManager
+     * @param $id
+     * @return Response
+     */
+    public function deleteBook(BookService $bookSer, BookRepository $bookRep, EntityManagerInterface $entityManager, $id): Response
+    {
+        return $bookSer->deleteBook($bookRep, $entityManager, $id);
+    }
 }

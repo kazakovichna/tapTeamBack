@@ -91,6 +91,31 @@ class BookService extends BookRepository
         );
     }
 
+    /**
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\ORMException
+     */
+    public function deleteBook(BookRepository $bookRep, EntityManagerInterface $entityManager, $id): Response
+    {
+        $deletedBook = $bookRep->findOneBy(["id"=>$id]);
+        $bookRep->remove($deletedBook, true);
+
+//        echo "this is book name = ".$deletedBook->getBookName();
+        if ($bookRep->findOneBy(["id"=>$id]) !== null) {
+            echo "book isn't deleted success";
+            return new Response(
+                "Book steel exist in database",
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                ['content-type'=> 'json']
+            );
+        }
+        return new Response(
+            "We deleted book successfully",
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
+        );
+    }
+
     // Данная функция проверяет данные которые пришли для обновления книги
     // Проверяет Имя, Описание на длину 0 < X <= 255,
     // Год на длину от 0 до 4 и на то что он состоит из цифр
@@ -203,6 +228,7 @@ class BookService extends BookRepository
             );
         }
 
+        // Проверка на обновление или добавление автора
         foreach ($requestData->book_authorList as $auth) {
             $isAuthorExistInBook = false;
 
@@ -222,7 +248,7 @@ class BookService extends BookRepository
                         ['content-type'=> 'json']
                     );
 
-                    // Если пользователь хочет поменять имя автору прямо в списке книг
+                    // Если пользователь хочет поменять имя автора прямо в списке книг, меняем в бд
                 } elseif ($auth->author_name !== $dbAuth->getAuthorName() && $auth->author_id === $dbAuth->getId()) {
                     echo 'I see you decide to change some author name so okay I gonna remember it))';
                     $isAuthorExistInBook = true;
