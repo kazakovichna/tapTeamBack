@@ -9,20 +9,32 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AuthorService extends AuthorRepository
 {
-    public function setAuthor(): Response
+    public function getAllAuthorSer(AuthorRepository $authRep): Response
     {
-//        $authorAr = ['galard', 'Dostoevski', 'Grin', 'Flag', 'Dumas'];
-//
-//        $entityManager = $this->getEntityManager();
-//
-//        foreach ($authorAr as $author) {
-//            $au = new Author();
-//            $au->setAuthorName($author);
-//            $entityManager->persist($au);
-//        }
-//        $entityManager->flush();
+        $authors = $authRep->findAll();
+        if ($authors === null) {
+            return new Response(
+                "No authors was found",
+                Response::HTTP_NOT_FOUND,
+                ['content-type'=> 'json']
+            );
+        }
+
+        $authorsMas = [];
+
+        foreach ($authors as $author) {
+            $authorJsonProto = new \stdClass();
+
+            $authorJsonProto->author_id = $author->getId();
+            $authorJsonProto->author_name = $author->getAuthorName();
+
+            $authorsMas[] = $authorJsonProto;
+        }
+
         return new Response(
-            'Hello World'
+            json_encode($authorsMas),
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
         );
     }
 }
