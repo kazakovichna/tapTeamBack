@@ -42,4 +42,12 @@ class AuthorController extends AbstractController
     {
         return $authSer->deleteAuthor($authRep, $id);
     }
+
+    /**
+     * @return void
+     */
+    public function bookCount(AuthorRepository $authRep, AuthorService $authSer)
+    {
+
+    }
 }
