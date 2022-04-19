@@ -22,7 +22,18 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
-    App\Admin\BookAdmin:
-        arguments: [~, App\Entity\Book ,~]
+#    App\Admin\BookAdmin:
+#        arguments: [~, App\Entity\Book ,~]
+#        tags:
+#            - { name: sonata.admin, model_class: App\Entity\Book, manager_type: odm, label: Book }
+
+#    App\EventListener\UserEventListener:
+#        tags:
+#            - { name: 'kernel.event_listener', event: 'kernel.controller_arguments' }
+
+    admin.BookAdmin:
+        class: App\Admin\BookAdmin
+        arguments: [~, App\Entity\Book, ~]
         tags:
-            - { name: sonate.admin, model_class: App\Entity\Book, manager_type: orm, label: Book }
+            - { name: sonata.admin, model_class: App\Entity\Book, manager_type: orm, label: Book }
+        public: true

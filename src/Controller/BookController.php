@@ -24,10 +24,12 @@ class BookController extends AbstractController
 
     /**
      * @Route("/book", name="addBook", methods={"POST"})
+     *
      * @param BookService $bookSer
      * @param BookRepository $bookRep
      * @param Request $request
      * @param EntityManagerInterface $entityManager
+     *
      * @return Response
      */
     public function addBook(BookService $bookSer, BookRepository $bookRep, Request $request, EntityManagerInterface $entityManager): Response
@@ -37,9 +39,14 @@ class BookController extends AbstractController
 
     /**
      * @Route("/book/{id}", name="update", methods={"POST"})
+     *
      * @param BookService $bookSer
+     * @param BookRepository $bookRep
+     * @param AuthorRepository $authRep
+     * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @param $id
+     *
      * @return Response
      */
     public function updateBook(BookService $bookSer, BookRepository $bookRep, AuthorRepository $authRep, EntityManagerInterface $entityManager, Request $request, $id): Response
@@ -49,10 +56,12 @@ class BookController extends AbstractController
 
     /**
      * @Route("book/{id}", name="deleteBook", methods={"DELETE"})
+     *
      * @param BookService $bookSer
      * @param BookRepository $bookRep
      * @param EntityManagerInterface $entityManager
      * @param $id
+     *
      * @return Response
      */
     public function deleteBook(BookService $bookSer, BookRepository $bookRep, EntityManagerInterface $entityManager, $id): Response
