@@ -76,6 +76,7 @@ class AuthorService
         // Сохраняем данные в базу данных
         $authorDB = new Author();
         $authorDB->setAuthorName($requestData->author_name);
+        $authorDB->setBookCount(0);
         $this->authorRepository->add($authorDB, true);
 
         return "Author add successfully";

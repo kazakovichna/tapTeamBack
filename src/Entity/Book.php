@@ -31,7 +31,7 @@ class Book
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Groups("book")
      */
-    private $book_descr;
+    private $book_description;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -71,14 +71,14 @@ class Book
         return $this;
     }
 
-    public function getBookDescr(): ?string
+    public function getBookDescription(): ?string
     {
-        return $this->book_descr;
+        return $this->book_description;
     }
 
-    public function setBookDescr(?string $book_descr): self
+    public function setBookDescription(?string $book_description): self
     {
-        $this->book_descr = $book_descr;
+        $this->book_description = $book_description;
 
         return $this;
     }

@@ -5,7 +5,6 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\AuthorRepository;
 use App\Repository\BookRepository;
 use App\Entity\Book;
@@ -35,7 +34,7 @@ class BookService
 
             $bookJsonProto->book_id = $book->getId();
             $bookJsonProto->book_name = $book->getBookName();
-            $bookJsonProto->book_descr = $book->getBookDescr();
+            $bookJsonProto->book_description = $book->getBookDescription();
             $bookJsonProto->book_year = $book->getBookYear();
 
             $bookAuthorMas = [];
@@ -138,7 +137,7 @@ class BookService
     public function validateRequestData(\stdClass $requestData): bool {
         if ($requestData->book_name === '' ||
             strlen($requestData->book_name) > 255 ||
-            strlen($requestData->book_descr) > 255 ||
+            strlen($requestData->book_description) > 255 ||
             $requestData->book_year === '' ||
             !preg_match("/^\d+$/", $requestData->book_year) ||
             strlen($requestData->book_year <= 4) ||
@@ -166,8 +165,8 @@ class BookService
         }
 
         // Обновление описание книги
-        if ($requestData->book_descr != $book->getBookDescr()) {
-            $book->setBookDescr($requestData->book_descr);
+        if ($requestData->book_description != $book->getBookDescription()) {
+            $book->setBookDescription($requestData->book_description);
             $this->entityManager->flush();
         }
 
