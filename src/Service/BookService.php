@@ -27,6 +27,7 @@ class BookService
     {
         echo 'hello we are in the prod';
         $books = $this->bookRepository->findAll();
+        echo 'we are even get books';
         if ($books === null) {
             return [
                 'data' => 'We just dont get data from dataBase',
