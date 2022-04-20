@@ -24,10 +24,12 @@ class BookController extends AbstractController
      */
     public function getAllBooks(): Response
     {
-        $jsonResponse = $this->bookService->getAllBooks();
+//        $jsonResponse = $this->bookService->getAllBooks();
         return new Response(
-            $jsonResponse['data'],
-            $jsonResponse['status'],
+//            $jsonResponse['data'],
+//            $jsonResponse['status'],
+        "Im all books",
+            Response::HTTP_OK,
             ['content-type'=> 'json']
         );
     }

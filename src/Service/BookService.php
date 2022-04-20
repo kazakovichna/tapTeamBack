@@ -25,6 +25,7 @@ class BookService
 
     public function getAllBooks(): array
     {
+        echo 'hello we are in the prod';
         $books = $this->bookRepository->findAll();
 
         $bookResponseMas = [];
