@@ -140,6 +140,7 @@
       <path value="$PROJECT_DIR$/vendor/amphp/amp" />
       <path value="$PROJECT_DIR$/vendor/amphp/http-client" />
       <path value="$PROJECT_DIR$/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/vendor/symfony/apache-pack" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="7.2" />
