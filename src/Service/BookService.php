@@ -27,6 +27,12 @@ class BookService
     {
         echo 'hello we are in the prod';
         $books = $this->bookRepository->findAll();
+        if ($books === null) {
+            return [
+                'data' => 'We just dont get data from dataBase',
+                'status' => Response::HTTP_OK
+            ];
+        }
 
         $bookResponseMas = [];
 
