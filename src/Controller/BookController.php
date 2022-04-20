@@ -28,7 +28,7 @@ class BookController extends AbstractController
         return new Response(
 //            $jsonResponse['data'],
 //            $jsonResponse['status'],
-        "Im all books",
+        "Im all book",
             Response::HTTP_OK,
             ['content-type'=> 'json']
         );
