@@ -4,21 +4,37 @@ namespace App\Service;
 
 use App\Repository\AuthorRepository;
 use App\Entity\Author;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Exception;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
+use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\HttpFoundation\Request;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\Response;
+use Doctrine\Persistence\ManagerRegistry;
 
-class AuthorService extends AuthorRepository
+class AuthorService
 {
-    public function getAllAuthorSer(AuthorRepository $authRep): Response
+    /**
+     * @var AuthorRepository
+     */
+    private $authorRepository;
+
+    /**
+     * @var ObjectManager
+     */
+    private $entityManager;
+
+    public function __construct(ManagerRegistry $doctrine, AuthorRepository $authorRepository)
     {
-        $authors = $authRep->findAll();
+        $this->authorRepository = $authorRepository;
+        $this->entityManager = $doctrine->getManager();
+    }
+
+    public function getAllAuthorSer(): string
+    {
+        $authors = $this->authorRepository->findAll();
         if ($authors === null) {
-            return new Response(
-                "No authors was found",
-                Response::HTTP_NOT_FOUND,
-                ['content-type'=> 'json']
-            );
+            return "No authors was found";
         }
 
         $authorsMas = [];
@@ -28,89 +44,93 @@ class AuthorService extends AuthorRepository
 
             $authorJsonProto->author_id = $author->getId();
             $authorJsonProto->author_name = $author->getAuthorName();
+            $authorJsonProto->author_book = $author->getBookCount();
 
             $authorsMas[] = $authorJsonProto;
         }
 
-        return new Response(
-            json_encode($authorsMas),
-            Response::HTTP_OK,
-            ['content-type'=> 'json']
-        );
+        return json_encode($authorsMas);
     }
 
     /**
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\ORMException
+     * @throws OptimisticLockException
+     * @throws ORMException
      */
-    public function addAuthor(AuthorRepository $authRep, Request $request): Response
+    public function addAuthor(Request $request): string
     {
         // Получаем данные из запроса
         $requestData = json_decode($request->getContent());
         echo $requestData->author_name;
         if ($requestData === null) {
-            return new Response(
-                'Empty Object Data Error 500',
-                Response::HTTP_INTERNAL_SERVER_ERROR,
-                [['content-type'=> 'json']]
-            );
+            return 'Empty Object Data Error 500';
         }
         // Проверяем нет ли уже такого автора
-        if ($authRep->findOneBy(['author_name'=>$requestData->author_name]) !== null) {
-            return new Response(
-                'Author already exist error 500',
-                Response::HTTP_INTERNAL_SERVER_ERROR,
-                [['content-type'=> 'json']]
-            );
+        if ($this->authorRepository->findOneBy(['author_name'=>$requestData->author_name]) !== null) {
+            return 'Author already exist error 500';
         }
         // Валидируем данные на длинну от 1 до 255
         if (strlen($requestData->author_name) === 0 ||
             strlen($requestData->author_name) > 255) {
-            return new Response(
-                "Invalid data",
-                Response::HTTP_INTERNAL_SERVER_ERROR,
-                ['content-type'=> 'json']
-            );
+            return "Invalid data";
         }
         // Сохраняем данные в базу данных
         $authorDB = new Author();
         $authorDB->setAuthorName($requestData->author_name);
-        $authRep->add($authorDB, true);
+        $this->authorRepository->add($authorDB, true);
 
-        return new Response(
-            "Author add successfully",
-            Response::HTTP_OK,
-            ['content-type'=> 'json']
-        );
+        return "Author add successfully";
     }
 
     /**
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\ORMException
+     * @throws OptimisticLockException
+     * @throws ORMException
      */
-    public function deleteAuthor(AuthorRepository $authRep, $id): Response
+    public function deleteAuthor($id): string
     {
-        $deletedAuth = $authRep->findOneBy(['id'=>$id]);
+        $deletedAuth = $this->authorRepository->findOneBy(['id'=>$id]);
         if ($deletedAuth === null) {
-            return new Response(
-                "Author not found, maybe he is already deleted",
-                Response::HTTP_NOT_FOUND,
-                ['content-type'=> 'json']
-            );
+            return "Author not found, maybe he is already deleted";
         }
-        $authRep->remove($deletedAuth, true);
-        if ($authRep->findOneBy(['id'=>$id]) !== null) {
-            return new Response(
-                "Author not deleted, some error here hah",
-                Response::HTTP_NOT_FOUND,
-                ['content-type'=> 'json']
-            );
+        $this->authorRepository->remove($deletedAuth, true);
+        if ($this->authorRepository->findOneBy(['id'=>$id]) !== null) {
+            return "Author still not deleted, some error here hah";
         }
 
-        return new Response(
-            "Author delete successfully",
-            Response::HTTP_OK,
-            ['content-type'=> 'json']
-        );
+        return "Author delete successfully";
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function specialSQL(): string
+    {
+        $sql = "SELECT book_name FROM book AS b 
+                INNER JOIN book_author AS ba ON b.id = ba.book_id 
+                GROUP BY b.book_name HAVING count(ba.book_id) > 2";
+
+        $connParams = [
+            'url' => 'mysql://root:mazashib@127.0.0.1:3306/basic_crud_db'
+        ];
+        $conn = DriverManager::getConnection($connParams);
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery();
+
+        return json_encode($resultSet->fetchAllAssociative());
+    }
+
+    public function specialORM(): string
+    {
+        $queryBuilder =  $this->entityManager->createQueryBuilder();
+//        $query = $queryBuilder->select(array('b'))
+//            ->from('App:Book', 'b')
+//            ->where(count(b.authorList) > 2)
+//            ->groupBy('b.book_name')
+//            ->having('count(ba) > 2')
+//            ->getQuery();
+//
+//
+//        var_dump($query->getResult());
+
+        return '';
     }
 }

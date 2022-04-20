@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Book;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,58 +16,77 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class BookController extends AbstractController
 {
+    private $bookService;
+
+    public function __construct(BookService $bookService)
+    {
+        $this->bookService = $bookService;
+    }
+
     /**
      * @Route("/book", name="app_book", methods={"GET"})
      */
-    public function getAllBooks(BookService $bookSer, BookRepository $bookRep): Response
+    public function getAllBooks(): Response
     {
-        return $bookSer->getAllBooks($bookRep);
+        $jsonResponse = $this->bookService->getAllBooks();
+        return new Response(
+            $jsonResponse['data'],
+            $jsonResponse['status'],
+            ['content-type'=> 'json']
+        );
     }
 
     /**
      * @Route("/book", name="addBook", methods={"POST"})
      *
-     * @param BookService $bookSer
-     * @param BookRepository $bookRep
      * @param Request $request
-     * @param EntityManagerInterface $entityManager
      *
      * @return Response
      */
-    public function addBook(BookService $bookSer, BookRepository $bookRep, Request $request, EntityManagerInterface $entityManager): Response
+    public function addBook(Request $request): Response
     {
-        return $bookSer->addBook($bookRep,  $request, $entityManager);
+        $jsonResponse = $this->bookService->addBook($request);
+        return new Response(
+            $jsonResponse['data'],
+            $jsonResponse['status'],
+            ['content-type'=> 'json']
+        );
     }
 
     /**
      * @Route("/book/{id}", name="update", methods={"POST"})
      *
-     * @param BookService $bookSer
-     * @param BookRepository $bookRep
-     * @param AuthorRepository $authRep
-     * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @param $id
      *
      * @return Response
      */
-    public function updateBook(BookService $bookSer, BookRepository $bookRep, AuthorRepository $authRep, EntityManagerInterface $entityManager, Request $request, $id): Response
+    public function updateBook(Request $request, $id): Response
     {
-        return $bookSer->updateBook($request, $id, $bookRep, $authRep, $entityManager);
+        $jsonResponse = $this->bookService->updateBook($request, $id);
+        return new Response(
+            $jsonResponse['data'],
+            $jsonResponse['status'],
+            ['content-type'=> 'json']
+        );
     }
 
     /**
      * @Route("book/{id}", name="deleteBook", methods={"DELETE"})
      *
-     * @param BookService $bookSer
-     * @param BookRepository $bookRep
-     * @param EntityManagerInterface $entityManager
      * @param $id
      *
      * @return Response
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
-    public function deleteBook(BookService $bookSer, BookRepository $bookRep, EntityManagerInterface $entityManager, $id): Response
+    public function deleteBook($id): Response
     {
-        return $bookSer->deleteBook($bookRep, $entityManager, $id);
+        $jsonResponse = $this->bookService->deleteBook($id);
+        return new Response(
+            $jsonResponse['data'],
+            $jsonResponse['status'],
+            ['content-type'=> 'json']
+        );
     }
 }

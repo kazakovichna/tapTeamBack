@@ -1,18 +1,32 @@
 <?php
 
 namespace App\Service;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\AuthorRepository;
 use App\Repository\BookRepository;
 use App\Entity\Book;
+use Doctrine\Persistence\ManagerRegistry;
 
-class BookService extends BookRepository
+class BookService
 {
-    public function getAllBooks(BookRepository $bookRep): Response
+    private $bookRepository;
+    private $authorRepository;
+    private $entityManager;
+
+    public function __construct(BookRepository $bookRepository, AuthorRepository $authorRepository, ManagerRegistry $doctrine)
     {
-        $books = $bookRep->findAll();
+        $this->bookRepository = $bookRepository;
+        $this->authorRepository = $authorRepository;
+        $this->entityManager = $doctrine->getManager();
+    }
+
+    public function getAllBooks(): array
+    {
+        $books = $this->bookRepository->findAll();
 
         $bookResponseMas = [];
 
@@ -37,28 +51,24 @@ class BookService extends BookRepository
             $bookResponseMas[] = $bookJsonProto;
         }
 
-//        echo json_encode($bookResponseMas);
-
-        return new Response(
-            json_encode($bookResponseMas),
-            Response::HTTP_OK,
-            ['content-type'=> 'json']
-        );
+        return [
+            'data' => json_encode($bookResponseMas),
+            'status' => Response::HTTP_OK
+        ];
     }
 
     /**
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\ORMException
+     * @throws OptimisticLockException
+     * @throws ORMException
      */
-    public function addBook(BookRepository $bookRep, Request $request, EntityManagerInterface $entityManager): Response
+    public function addBook(Request $request): array
     {
         $requestData = json_decode($request->getContent());
         if ($requestData === null) {
-            return new Response(
-                'Empty Object Data Error 500',
-                Response::HTTP_INTERNAL_SERVER_ERROR,
-                [['content-type'=> 'json']]
-            );
+            return [
+                'data' => 'Empty Object Data Error 500',
+                'status' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ];
         }
 
         // Валидируем имя и год для добавление в бд
@@ -69,93 +79,55 @@ class BookService extends BookRepository
             strlen($requestData->book_year) === 0 ||
             strlen($requestData->book_year) > 4 ||
             !preg_match("/^\d+$/", $requestData->book_year)) {
-            return new Response(
-                'Invalid Object Data Error 500',
-                Response::HTTP_INTERNAL_SERVER_ERROR,
-                [['content-type'=> 'json']]
-            );
+            return [
+                'data' => 'Invalid Object Data Error 500',
+                'status' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ];
         }
 
         $bookData = new Book();
         $bookData->setBookName($requestData->book_name);
         $bookData->setBookYear($requestData->book_year);
 
-        $bookRep->add($bookData, true);
+        $this->bookRepository->add($bookData, true);
 
-        return new Response(
-            "New Book added successfully",
-            Response::HTTP_OK,
-            ['content-type'=> 'json']
-        );
+        return [
+            'data' => 'New Book added successfully',
+            'status' => Response::HTTP_OK
+        ];
+
     }
 
-    public function updateBook(Request $request, $id, $bookRep, $authRep, $entityManager): Response
+    public function updateBook(Request $request, $id): array
     {
         // Получает тело запроса и проверяем что оно не пустое, так как нам нужно обновляться
         $requestData = json_decode($request->getContent());
         if ($requestData === null) {
-            return new Response(
-                'Empty Object Data Error 500',
-                Response::HTTP_INTERNAL_SERVER_ERROR,
-                [['content-type'=> 'json']]
-            );
+            return [
+                'data' => 'Empty Object Data Error 500',
+                'status' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ];
         }
 
         // Получаем книгу из бд и проверяем что он сущесвтует
-        $book = $bookRep->findOneBy(['id'=>$id]);
+        $book = $this->bookRepository->findOneBy(['id'=>$id]);
         if (!$book) {
-            return new Response(
-                'Book not found',
-                Response::HTTP_NOT_FOUND,
-                [['content-type'=> 'json']]
-            );
+            return [
+                'data' => 'Book not found',
+                'status' => Response::HTTP_NOT_FOUND
+            ];
         }
 
-        // Делаем блок транзакции,
-        // чтобы выкинуть все сразу если что-то пойдет не так и причем с одной ошибкой
-        // В нем проверять данные запроса на коректность и проверять таблицу авторов
-        try {
-            $isDataValid = $this->validateRequestData($requestData);
-            if ($isDataValid === false) {
-                throw new \Exception();
-            }
-            $updateCurFieldRes = $this->updateCurFieldBook($requestData, $book, $authRep, $entityManager);
-
-        }catch (\Exception $e) {
-            return new Response(
-                'Invalid Data',
-                Response::HTTP_UNPROCESSABLE_ENTITY,
-                ['content-type'=> 'json']
-            );
+        // Проверка всех данных на длину пустоту сразу чтобы потом не проверять
+        $isDataValid = $this->validateRequestData($requestData);
+        if ($isDataValid === false) {
+            return [
+                'data' => 'Invalid data',
+                'status' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ];
         }
 
-        return new Response(
-            $updateCurFieldRes
-        );
-    }
-
-    /**
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\ORMException
-     */
-    public function deleteBook(BookRepository $bookRep, EntityManagerInterface $entityManager, $id): Response
-    {
-        $deletedBook = $bookRep->findOneBy(["id"=>$id]);
-        $bookRep->remove($deletedBook, true);
-
-        if ($bookRep->findOneBy(["id"=>$id]) !== null) {
-            echo "book isn't deleted success";
-            return new Response(
-                "Book steel exist in database",
-                Response::HTTP_INTERNAL_SERVER_ERROR,
-                ['content-type'=> 'json']
-            );
-        }
-        return new Response(
-            "We deleted book successfully",
-            Response::HTTP_OK,
-            ['content-type'=> 'json']
-        );
+        return $this->updateAuthorsOfBook($requestData, $book);
     }
 
     // Данная функция проверяет данные которые пришли для обновления книги
@@ -182,69 +154,33 @@ class BookService extends BookRepository
 
         return true;
     }
-    // Обновляет в бд данные о конкретной книге
-    // Все входные данные уже провалидированные тут этого делать не нужно
-    // Причем изменение может касаться только одного поля
-    // Название книги, Описание, Год, Или одно поле из массива автора
-    public function updateCurFieldBook(\stdClass $requestData,Book $book,AuthorRepository $authRep,EntityManagerInterface $entityManager): Response {
 
-        // Эта функция обновляет простые поля Имя, Описание, Год книги.
-        $this->updateSimpleBookField($requestData, $book, $entityManager);
-
-        // Эта функция обновляет массив авторов и проверяет его на все условия.
-        $this->updateAuthorsOfBook($requestData, $book, $authRep, $entityManager);
-
-        return new Response(
-            "Update Success",
-            Response::HTTP_OK,
-            ['content-type'=> 'json']
-        );
-    }
-    // Эта функция обновляет простые поля Имя, Описание, Год книги. Просто проверяет есть ли изменения.
-    public function updateSimpleBookField(\stdClass $requestData,Book $book, EntityManagerInterface $entityManager)
+    // Эта функция обновляет массив авторов и проверяет его на все условия:
+    // Добавление автора, изменение имени автора, удаление автора.
+    public function updateAuthorsOfBook(\stdClass $requestData,Book $book): array
     {
         // Обновление имени книги
         if ($requestData->book_name != $book->getBookName()) {
             $book->setBookName($requestData->book_name);
-            $entityManager->flush();
-
-            return new Response(
-                "Book name updated",
-                Response::HTTP_OK,
-                ['content-type'=> 'json']
-            );
+            $this->entityManager->flush();
         }
 
         // Обновление описание книги
         if ($requestData->book_descr != $book->getBookDescr()) {
             $book->setBookDescr($requestData->book_descr);
-            $entityManager->flush();
-
-            return new Response(
-                "Book descr updated",
-                Response::HTTP_OK,
-                ['content-type'=> 'json']
-            );
+            $this->entityManager->flush();
         }
 
         // Обновление года издания книги
         if ($requestData->book_year !== $book->getBookYear()) {
             $book->setBookYear($requestData->book_year);
-            $entityManager->flush();
-
-            return new Response(
-                "Book year updated",
-                Response::HTTP_OK,
-                ['content-type'=> 'json']
-            );
+            $this->entityManager->flush();
         }
-        return 'No fields need update';
-    }
-    // Эта функция обновляет массив авторов и проверяет его на все условия:
-    // Добавление автора, изменение имени автора, удаление автора.
-    public function updateAuthorsOfBook(\stdClass $requestData,Book $book,AuthorRepository $authRep,EntityManagerInterface $entityManager)
-    {
-        // Проверка на удаление элемента.
+
+        // Далее идет самое сложное проверка и обновление авторов у книги
+
+        // Part 1
+        // Проверка на удаление автора.
         // Проверим и сравним длину входящих и имеющихся данных.
         // Если не равны и входящий массив меньше, то найти того автора и отвязать его
         if (count($requestData->book_authorList) < count($book->getAuthorList())) {
@@ -257,19 +193,21 @@ class BookService extends BookRepository
                     }
                 }
                 if ($deletedAuth === null) {
-                    $authToRemove = $authRep->findOneBy(['author_name'=>$bookOne->getAuthorName()]);
+                    $authToRemove = $this->authorRepository->findOneBy(['author_name'=>$bookOne->getAuthorName()]);
 
                     $book->removeAuthorList($authToRemove);
-                    $entityManager->flush();
+                    $oldBookCount = $authToRemove->getBookCount();
+                    $authToRemove->setBookCount($oldBookCount - 1);
+                    $this->entityManager->flush();
                 }
             }
-            return new Response(
-                "Okay we delete author",
-                Response::HTTP_OK,
-                ['content-type'=> 'json']
-            );
+            return [
+                'data' => 'Author Delete Success',
+                'status' => Response::HTTP_OK
+            ];
         }
 
+        // Part 2
         // Проверка на обновление или добавление автора
         foreach ($requestData->book_authorList as $auth) {
             $isAuthorExistInBook = false;
@@ -284,11 +222,8 @@ class BookService extends BookRepository
 
                     // Если пользователь хочет добавить нового автора но он написал тоже самое имя ничего не произойдет
                 } elseif ($auth->author_name === $dbAuth->getAuthorName() && $auth->author_id === null) {
-                    return new Response(
-                        "Author already exist in bookList",
-                        Response::HTTP_NOT_FOUND,
-                        ['content-type'=> 'json']
-                    );
+                    // Выход из этого цикла
+                    continue;
 
                     // Если пользователь хочет поменять имя автора прямо в списке книг, меняем в бд
                 } elseif ($auth->author_name !== $dbAuth->getAuthorName() && $auth->author_id === $dbAuth->getId()) {
@@ -296,32 +231,59 @@ class BookService extends BookRepository
                     $isAuthorExistInBook = true;
 
                     $dbAuth->setAuthorName($auth->author_name);
-                    $entityManager->flush();
+                    $this->entityManager->flush();
 
-                    return new Response(
-                        "Author name updated",
-                        Response::HTTP_OK,
-                        ['content-type'=> 'json']
-                    );
+                    return [
+                        'data' => 'Author name updated',
+                        'status' => Response::HTTP_OK
+                    ];
                 }
             }
 
             // Если автора нет в списке у книги, то мы ищем его в бд и если находим, то добавляем к массиву
             if ($isAuthorExistInBook === false) {
-                $authDB = $authRep->findOneBy(['author_name'=>$auth->author_name]);
+                $authDB = $this->authorRepository->findOneBy(['author_name'=>$auth->author_name]);
                 if ($authDB != null ) {
-                    echo 'we are find right author in dataBase let add him to book';
+//                    echo 'we are find right author in dataBase let add him to book';
                     $book->addAuthorList($authDB);
-                    $entityManager->flush();
+                    $this->entityManager->flush();
+                    return [
+                        'data' => 'Author add to db',
+                        'status' => Response::HTTP_OK
+                    ];
                 } else {
-                    return new Response(
-                        "Author doesn't exist in database please create him first",
-                        Response::HTTP_NOT_FOUND,
-                        ['content-type'=> 'json']
-                    );
+                    return [
+                        'data' => 'Author doesnt exist in database please create him first',
+                        'status' => Response::HTTP_NOT_FOUND
+                    ];
                 }
             }
         }
-        return 'Okay no update here';
+        return [
+            'data' => 'All up to date',
+            'status' => Response::HTTP_OK
+        ];
+    }
+
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
+    public function deleteBook($id): array
+    {
+        $deletedBook = $this->bookRepository->findOneBy(["id"=>$id]);
+        $this->bookRepository->remove($deletedBook, true);
+
+        if ($this->bookRepository->findOneBy(["id"=>$id]) !== null) {
+            echo "book isn't deleted success";
+            return [
+                'data' => 'Book steel exist in database',
+                'status' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ];
+        }
+        return [
+            'data' => 'We deleted book successfully',
+            'status' => Response::HTTP_OK
+        ];
     }
 }

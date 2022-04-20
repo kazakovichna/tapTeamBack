@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-use App\Repository\AuthorRepository;
 use App\Service\AuthorService;
+use Doctrine\DBAL\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -12,44 +12,90 @@ use Symfony\Component\HttpFoundation\Request;
 class AuthorController extends AbstractController
 {
     /**
-     * @Route("/author", name="app_author", methods={"GET"})
+     * @var AuthorService
      */
-    public function getAllAuthor(AuthorService $authSer, AuthorRepository $authRep): Response
+    private $authorService;
+
+    public function __construct(AuthorService $authorService)
     {
-        return $authSer->getAllAuthorSer($authRep);
+        $this->authorService = $authorService;
     }
 
     /**
-     * @Route("/author", name="add_author", methods={"POST"})
-     * @param AuthorService $authSer
-     * @param AuthorRepository $authRep
+     * @Route("/author", name="appAuthor", methods={"GET"})
+     */
+    public function getAllAuthor(): Response
+    {
+        $jsonResponse = $this->authorService->getAllAuthorSer();
+        return new Response(
+            $jsonResponse,
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
+        );
+    }
+
+    /**
+     * @Route("/author", name="addAuthor", methods={"POST"})
      * @param Request $request
      * @return Response
      */
-    public function add_author(AuthorService $authSer, AuthorRepository $authRep, Request $request): Response
+    public function addAuthor(Request $request): Response
     {
-        return $authSer->addAuthor($authRep, $request);
+        $jsonResponse = $this->authorService->addAuthor($request);
+        return new Response(
+            $jsonResponse,
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
+        );
     }
 
     /**
-     * @Route("/author/{id}", name="delete_author", methods={"DELETE"})
+     * @Route("/author/{id}", name="deleteAuthor", methods={"DELETE"})
      *
-     * @param AuthorService $authSer
-     * @param AuthorRepository $authRep
      * @param $id
      *
      * @return Response
      */
-    public function delete_author(AuthorService $authSer, AuthorRepository $authRep, $id): Response
+    public function deleteAuthor($id): Response
     {
-        return $authSer->deleteAuthor($authRep, $id);
+        $jsonResponse = $this->authorService->deleteAuthor($id);
+        return new Response(
+            $jsonResponse,
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
+        );
     }
 
     /**
-     * @return void
+     * @Route("/special/sql", name="specialSQL", methods={"GET"})
+     *
+     * @return Response
+     * @throws Exception
      */
-    public function bookCount(AuthorRepository $authRep, AuthorService $authSer)
+    public function specialRequestSQl(): Response
     {
+        $responseJson = $this->authorService->specialSQL();
 
+        return new Response(
+            $responseJson,
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
+        );
+    }
+
+    /**
+     * @Route("/special/orm", name="specialORM", methods={"GET"})
+     *
+     * @return Response
+     */
+    public function specialRequestORM(): Response
+    {
+        $responseJson = $this->authorService->specialORM();
+
+        return new Response(
+            $responseJson,
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
+        );
     }
 }

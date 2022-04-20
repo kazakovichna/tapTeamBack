@@ -28,6 +28,11 @@ class Author
     private $author_name;
 
     /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $book_count;
+
+    /**
      * @ORM\ManyToMany(targetEntity=Book::class, mappedBy="authorList")
      */
     private $booksList;
@@ -77,6 +82,18 @@ class Author
         if ($this->booksList->removeElement($booksList)) {
             $booksList->removeAuthorList($this);
         }
+
+        return $this;
+    }
+
+    public function getBookCount(): ?int
+    {
+        return $this->book_count;
+    }
+
+    public function setBookCount(?int $book_count): self
+    {
+        $this->book_count = $book_count;
 
         return $this;
     }
