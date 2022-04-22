@@ -24,7 +24,6 @@ class BookController extends AbstractController
      */
     public function getAllBooks(): Response
     {
-        echo 'we are here';
         $jsonResponse = $this->bookService->getAllBooks();
         return new Response(
             $jsonResponse['data'],
