@@ -43,6 +43,7 @@ class BookController extends AbstractController
     public function addBook(Request $request): Response
     {
         $jsonResponse = $this->bookService->addBook($request);
+
         return new Response(
             $jsonResponse['data'],
             $jsonResponse['status'],
@@ -61,6 +62,7 @@ class BookController extends AbstractController
     public function updateBook(Request $request, $id): Response
     {
         $jsonResponse = $this->bookService->updateBook($request, $id);
+
         return new Response(
             $jsonResponse['data'],
             $jsonResponse['status'],
@@ -80,6 +82,7 @@ class BookController extends AbstractController
     public function deleteBook($id): Response
     {
         $jsonResponse = $this->bookService->deleteBook($id);
+
         return new Response(
             $jsonResponse['data'],
             $jsonResponse['status'],

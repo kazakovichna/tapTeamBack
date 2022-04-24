@@ -42,7 +42,7 @@ class UserEventListener
                   WHERE author_id = ?) WHERE id = ?";
 
             $connParams = [
-                'url' => 'mysql://root:mazashib@127.0.0.1:3306/basic_crud_db'
+                'url' => 'mysql://njMJc055yS:qh9OaFysQc@remotemysql.com:3306/njMJc055yS'
             ];
 
 

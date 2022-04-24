@@ -27,6 +27,7 @@ class BookService
     {
         $books = $this->bookRepository->findAll();
         if ($books === null) {
+
             return [
                 'data' => 'We just dont get data from dataBase',
                 'status' => Response::HTTP_OK
@@ -70,6 +71,7 @@ class BookService
     {
         $requestData = json_decode($request->getContent());
         if ($requestData === null) {
+
             return [
                 'data' => 'Empty Object Data Error 500',
                 'status' => Response::HTTP_INTERNAL_SERVER_ERROR
@@ -84,6 +86,7 @@ class BookService
             strlen($requestData->book_year) === 0 ||
             strlen($requestData->book_year) > 4 ||
             !preg_match("/^\d+$/", $requestData->book_year)) {
+
             return [
                 'data' => 'Invalid Object Data Error 500',
                 'status' => Response::HTTP_INTERNAL_SERVER_ERROR
@@ -108,6 +111,7 @@ class BookService
         // Получает тело запроса и проверяем что оно не пустое, так как нам нужно обновляться
         $requestData = json_decode($request->getContent());
         if ($requestData === null) {
+
             return [
                 'data' => 'Empty Object Data Error 500',
                 'status' => Response::HTTP_INTERNAL_SERVER_ERROR
@@ -117,6 +121,7 @@ class BookService
         // Получаем книгу из бд и проверяем что он сущесвтует
         $book = $this->bookRepository->findOneBy(['id'=>$id]);
         if (!$book) {
+
             return [
                 'data' => 'Book not found',
                 'status' => Response::HTTP_NOT_FOUND
@@ -126,6 +131,7 @@ class BookService
         // Проверка всех данных на длину пустоту сразу чтобы потом не проверять
         $isDataValid = $this->validateRequestData($requestData);
         if ($isDataValid === false) {
+
             return [
                 'data' => 'Invalid data',
                 'status' => Response::HTTP_INTERNAL_SERVER_ERROR
@@ -148,11 +154,13 @@ class BookService
             !preg_match("/^\d+$/", $requestData->book_year) ||
             strlen($requestData->book_year <= 4) ||
             count($requestData->book_authorList) === 0) {
+
             return false;
         }
 
         foreach ($requestData->book_authorList as $auth) {
             if (strlen($auth->author_name) === 0 || strlen($auth->author_name) > 255) {
+
                 return false;
             }
         }
@@ -206,6 +214,7 @@ class BookService
                     $this->entityManager->flush();
                 }
             }
+
             return [
                 'data' => 'Author Delete Success',
                 'status' => Response::HTTP_OK
@@ -252,11 +261,13 @@ class BookService
 //                    echo 'we are find right author in dataBase let add him to book';
                     $book->addAuthorList($authDB);
                     $this->entityManager->flush();
+
                     return [
                         'data' => 'Author add to db',
                         'status' => Response::HTTP_OK
                     ];
                 } else {
+
                     return [
                         'data' => 'Author doesnt exist in database please create him first',
                         'status' => Response::HTTP_NOT_FOUND
@@ -264,6 +275,7 @@ class BookService
                 }
             }
         }
+
         return [
             'data' => 'All up to date',
             'status' => Response::HTTP_OK
@@ -281,11 +293,13 @@ class BookService
 
         if ($this->bookRepository->findOneBy(["id"=>$id]) !== null) {
             echo "book isn't deleted success";
+
             return [
                 'data' => 'Book steel exist in database',
                 'status' => Response::HTTP_INTERNAL_SERVER_ERROR
             ];
         }
+
         return [
             'data' => 'We deleted book successfully',
             'status' => Response::HTTP_OK
