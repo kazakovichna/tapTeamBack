@@ -16,7 +16,7 @@ final class BookAdmin extends AbstractAdmin
     protected function configureFormFields(FormMapper $formMapper): void
     {
         $formMapper->add('book_name', TextType::class);
-        $formMapper->add('book_descr', TextType::class);
+        $formMapper->add('book_description', TextType::class);
         $formMapper->add('book_year', TextType::class);
         $formMapper->add('authorList', EntityType::class, [
             'class' => Author::class,
@@ -31,6 +31,7 @@ final class BookAdmin extends AbstractAdmin
 
     protected function configureListFields(ListMapper $listMapper): void
     {
+        $listMapper->addIdentifier('id');
         $listMapper->addIdentifier('book_name');
     }
 

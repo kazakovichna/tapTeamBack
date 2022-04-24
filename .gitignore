@@ -1,4 +1,5 @@
-
+.idea
+basic_crud_db
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
