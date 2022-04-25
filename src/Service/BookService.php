@@ -256,7 +256,7 @@ class BookService
 
             // Если автора нет в списке у книги, то мы ищем его в бд и если находим, то добавляем к массиву
             if ($isAuthorExistInBook === false) {
-                $authDB = $this->authorRepository->findOneBy(['author_name'=>$auth->author_name]);
+                $authDB = $this->authorRepository->findOneBy(['authorName'=>$auth->author_name]);
                 if ($authDB != null ) {
 //                    echo 'we are find right author in dataBase let add him to book';
                     $book->addAuthorList($authDB);
