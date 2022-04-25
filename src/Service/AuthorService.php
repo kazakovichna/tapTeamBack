@@ -110,7 +110,7 @@ class AuthorService
                 GROUP BY b.book_name HAVING count(ba.book_id) > 2";
 
         $connParams = [
-            'url' => 'mysql://root:mazashib@127.0.0.1:3306/basic_crud_db'
+            'url' => "mysql://njMJc055yS:qh9OaFysQc@remotemysql.com:3306/njMJc055yS?serverVersion=5.7&charset=utf8mb4"
         ];
         $conn = DriverManager::getConnection($connParams);
         $stmt = $conn->prepare($sql);
@@ -122,16 +122,13 @@ class AuthorService
     public function specialORM(): string
     {
         $queryBuilder =  $this->entityManager->createQueryBuilder();
-//        $query = $queryBuilder->select(array('b'))
-//            ->from('App:Book', 'b')
-//            ->where(count(b.authorList) > 2)
-//            ->groupBy('b.book_name')
-//            ->having('count(ba) > 2')
-//            ->getQuery();
-//
-//
-//        var_dump($query->getResult());
+        $query = $queryBuilder->select(array('b.book_name'))
+            ->from('App:Book', 'b')
+            ->leftJoin('b.authorList', 'a')
+            ->having('COUNT(a.id) > 2')
+            ->groupBy('b.book_name')
+            ->getQuery();
 
-        return '';
+        return json_encode($query->getResult());
     }
 }
