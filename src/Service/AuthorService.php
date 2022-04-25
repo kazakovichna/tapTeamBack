@@ -42,6 +42,7 @@ class AuthorService
         foreach ($authors as $author) {
             $authorJsonProto = new \stdClass();
 
+            // Тут кебаб потому что это поля из бл
             $authorJsonProto->author_id = $author->getId();
             $authorJsonProto->author_name = $author->getAuthorName();
             $authorJsonProto->author_book = $author->getBookCount();

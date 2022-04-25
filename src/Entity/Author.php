@@ -25,12 +25,12 @@ class Author
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Groups("author")
      */
-    private $author_name;
+    private $authorName;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $book_count;
+    private $bookCount;
 
     /**
      * @ORM\ManyToMany(targetEntity=Book::class, mappedBy="authorList")
@@ -49,12 +49,12 @@ class Author
 
     public function getAuthorName(): ?string
     {
-        return $this->author_name;
+        return $this->authorName;
     }
 
-    public function setAuthorName(?string $author_name): self
+    public function setAuthorName(?string $authorName): self
     {
-        $this->author_name = $author_name;
+        $this->authorName = $authorName;
 
         return $this;
     }
@@ -88,12 +88,12 @@ class Author
 
     public function getBookCount(): ?int
     {
-        return $this->book_count;
+        return $this->bookCount;
     }
 
-    public function setBookCount(?int $book_count): self
+    public function setBookCount(?int $bookCount): self
     {
-        $this->book_count = $book_count;
+        $this->bookCount = $bookCount;
 
         return $this;
     }

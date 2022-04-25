@@ -25,19 +25,19 @@ class Book
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Groups("book")
      */
-    private $book_name;
+    private $bookName;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Groups("book")
      */
-    private $book_description;
+    private $bookDescription;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      * @Groups("book")
      */
-    private $book_year;
+    private $bookYear;
 
 //    /**
 //     * @ORM\Column(type="blob", nullable=true)
@@ -61,36 +61,36 @@ class Book
 
     public function getBookName(): ?string
     {
-        return $this->book_name;
+        return $this->bookName;
     }
 
-    public function setBookName(?string $book_name): self
+    public function setBookName(?string $bookName): self
     {
-        $this->book_name = $book_name;
+        $this->bookName = $bookName;
 
         return $this;
     }
 
     public function getBookDescription(): ?string
     {
-        return $this->book_description;
+        return $this->bookDescription;
     }
 
-    public function setBookDescription(?string $book_description): self
+    public function setBookDescription(?string $bookDescription): self
     {
-        $this->book_description = $book_description;
+        $this->bookDescription = $bookDescription;
 
         return $this;
     }
 
     public function getBookYear(): ?string
     {
-        return $this->book_year;
+        return $this->bookYear;
     }
 
-    public function setBookYear(?string $book_year): self
+    public function setBookYear(?string $bookYear): self
     {
-        $this->book_year = $book_year;
+        $this->bookYear = $bookYear;
 
         return $this;
     }
