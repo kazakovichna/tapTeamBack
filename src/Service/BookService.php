@@ -206,7 +206,7 @@ class BookService
                     }
                 }
                 if ($deletedAuth === null) {
-                    $authToRemove = $this->authorRepository->findOneBy(['author_name'=>$bookOne->getAuthorName()]);
+                    $authToRemove = $this->authorRepository->findOneBy(['authorName'=>$bookOne->getAuthorName()]);
 
                     $book->removeAuthorList($authToRemove);
                     $oldBookCount = $authToRemove->getBookCount();
