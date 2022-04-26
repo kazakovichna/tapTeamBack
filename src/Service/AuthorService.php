@@ -45,7 +45,7 @@ class AuthorService
             // Тут кебаб потому что это поля из бл
             $authorJsonProto->authorId = $author->getId();
             $authorJsonProto->authorName = $author->getAuthorName();
-            $authorJsonProto->authorBook = $author->getBookCount();
+            $authorJsonProto->bookCount = $author->getBookCount();
 
             $authorsMas[] = $authorJsonProto;
         }
