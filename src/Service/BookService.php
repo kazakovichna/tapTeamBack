@@ -260,6 +260,8 @@ class BookService
                 if ($authDB != null ) {
 //                    echo 'we are find right author in dataBase let add him to book';
                     $book->addAuthorList($authDB);
+                    $oldBookCount = $authDB->getBookCount();
+                    $authDB->setBookCount($oldBookCount + 1);
                     $this->entityManager->flush();
 
                     return [
