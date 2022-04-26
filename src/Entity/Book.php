@@ -22,19 +22,19 @@ class Book
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(name="book_name", type="string", length=255, nullable=true)
      * @Groups("book")
      */
     private $bookName;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(name="book_description", type="string", length=255, nullable=true)
      * @Groups("book")
      */
     private $bookDescription;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(name="book_year", type="string", length=255, nullable=true)
      * @Groups("book")
      */
     private $bookYear;

@@ -27,10 +27,10 @@ class AuthorController extends AbstractController
     public function getAllAuthor(): Response
     {
         $jsonResponse = $this->authorService->getAllAuthorSer();
+
         return new Response(
             $jsonResponse,
-            Response::HTTP_OK,
-            ['content-type'=> 'json']
+            Response::HTTP_OK
         );
     }
 
@@ -42,10 +42,10 @@ class AuthorController extends AbstractController
     public function addAuthor(Request $request): Response
     {
         $jsonResponse = $this->authorService->addAuthor($request);
+
         return new Response(
             $jsonResponse,
-            Response::HTTP_OK,
-            ['content-type'=> 'json']
+            Response::HTTP_OK
         );
     }
 
@@ -59,10 +59,10 @@ class AuthorController extends AbstractController
     public function deleteAuthor($id): Response
     {
         $jsonResponse = $this->authorService->deleteAuthor($id);
+
         return new Response(
             $jsonResponse,
-            Response::HTTP_OK,
-            ['content-type'=> 'json']
+            Response::HTTP_OK
         );
     }
 
@@ -78,8 +78,7 @@ class AuthorController extends AbstractController
 
         return new Response(
             $responseJson,
-            Response::HTTP_OK,
-            ['content-type'=> 'json']
+            Response::HTTP_OK
         );
     }
 
@@ -94,8 +93,7 @@ class AuthorController extends AbstractController
 
         return new Response(
             $responseJson,
-            Response::HTTP_OK,
-            ['content-type'=> 'json']
+            Response::HTTP_OK
         );
     }
 }

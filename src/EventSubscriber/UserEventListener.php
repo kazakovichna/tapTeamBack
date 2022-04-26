@@ -33,7 +33,7 @@ class UserEventListener
         foreach ($argData->getAuthorList()->toArray() as $bookAuthor) {
 
             $entityManager = $args->getObjectManager()->getRepository(Author::class);
-            $author = $entityManager->findOneBy(['author_name'=>$bookAuthor->getAuthorName()]);
+            $author = $entityManager->findOneBy(['authorName'=>$bookAuthor->getAuthorName()]);
 
             echo " author id " . $author->getId() . " author name " . $author->getAuthorName();
 

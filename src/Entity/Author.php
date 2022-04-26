@@ -22,13 +22,13 @@ class Author
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(name="author_name", type="string", length=255, nullable=true)
      * @Groups("author")
      */
     private $authorName;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="book_count", type="integer", nullable=true)
      */
     private $bookCount;
 

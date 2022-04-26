@@ -43,9 +43,9 @@ class AuthorService
             $authorJsonProto = new \stdClass();
 
             // Тут кебаб потому что это поля из бл
-            $authorJsonProto->author_id = $author->getId();
-            $authorJsonProto->author_name = $author->getAuthorName();
-            $authorJsonProto->author_book = $author->getBookCount();
+            $authorJsonProto->authorId = $author->getId();
+            $authorJsonProto->authorName = $author->getAuthorName();
+            $authorJsonProto->authorBook = $author->getBookCount();
 
             $authorsMas[] = $authorJsonProto;
         }
@@ -61,22 +61,22 @@ class AuthorService
     {
         // Получаем данные из запроса
         $requestData = json_decode($request->getContent());
-        echo $requestData->author_name;
+        echo $requestData->authorName;
         if ($requestData === null) {
             return 'Empty Object Data Error 500';
         }
         // Проверяем нет ли уже такого автора
-        if ($this->authorRepository->findOneBy(['author_name'=>$requestData->author_name]) !== null) {
+        if ($this->authorRepository->findOneBy(['author_name'=>$requestData->authorName]) !== null) {
             return 'Author already exist error 500';
         }
         // Валидируем данные на длинну от 1 до 255
-        if (strlen($requestData->author_name) === 0 ||
-            strlen($requestData->author_name) > 255) {
+        if (strlen($requestData->authorName) === 0 ||
+            strlen($requestData->authorName) > 255) {
             return "Invalid data";
         }
         // Сохраняем данные в базу данных
         $authorDB = new Author();
-        $authorDB->setAuthorName($requestData->author_name);
+        $authorDB->setAuthorName($requestData->authorName);
         $authorDB->setBookCount(0);
         $this->authorRepository->add($authorDB, true);
 
@@ -123,11 +123,11 @@ class AuthorService
     public function specialORM(): string
     {
         $queryBuilder =  $this->entityManager->createQueryBuilder();
-        $query = $queryBuilder->select(array('b.book_name'))
+        $query = $queryBuilder->select(array('b.bookName'))
             ->from('App:Book', 'b')
             ->leftJoin('b.authorList', 'a')
             ->having('COUNT(a.id) > 2')
-            ->groupBy('b.book_name')
+            ->groupBy('b.bookName')
             ->getQuery();
 
         return json_encode($query->getResult());
