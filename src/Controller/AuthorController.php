@@ -30,7 +30,8 @@ class AuthorController extends AbstractController
 
         return new Response(
             $jsonResponse,
-            Response::HTTP_OK
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
         );
     }
 
@@ -45,7 +46,8 @@ class AuthorController extends AbstractController
 
         return new Response(
             $jsonResponse,
-            Response::HTTP_OK
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
         );
     }
 
@@ -62,7 +64,8 @@ class AuthorController extends AbstractController
 
         return new Response(
             $jsonResponse,
-            Response::HTTP_OK
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
         );
     }
 
@@ -78,7 +81,8 @@ class AuthorController extends AbstractController
 
         return new Response(
             $responseJson,
-            Response::HTTP_OK
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
         );
     }
 
@@ -93,7 +97,8 @@ class AuthorController extends AbstractController
 
         return new Response(
             $responseJson,
-            Response::HTTP_OK
+            Response::HTTP_OK,
+            ['content-type'=> 'json']
         );
     }
 }

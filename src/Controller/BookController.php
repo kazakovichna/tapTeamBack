@@ -28,7 +28,8 @@ class BookController extends AbstractController
 
         return new Response(
             $jsonResponse['data'],
-            $jsonResponse['status']
+            $jsonResponse['status'],
+            ['content-type'=> 'json']
         );
     }
 
@@ -45,7 +46,8 @@ class BookController extends AbstractController
 
         return new Response(
             $jsonResponse['data'],
-            $jsonResponse['status']
+            $jsonResponse['status'],
+            ['content-type'=> 'json']
         );
     }
 
@@ -63,7 +65,8 @@ class BookController extends AbstractController
 
         return new Response(
             $jsonResponse['data'],
-            $jsonResponse['status']
+            $jsonResponse['status'],
+            ['content-type'=> 'json']
         );
     }
 
@@ -82,7 +85,8 @@ class BookController extends AbstractController
 
         return new Response(
             $jsonResponse['data'],
-            $jsonResponse['status']
+            $jsonResponse['status'],
+            ['content-type'=> 'json']
         );
     }
 }
