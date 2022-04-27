@@ -39,6 +39,28 @@ class Book
      */
     private $bookYear;
 
+    /**
+     * @ORM\Column(name="author_count", type="integer", nullable=true)
+     * @Groups("book")
+     */
+    private $authorCount;
+
+    /**
+     * @return mixed
+     */
+    public function getAuthorCount()
+    {
+        return $this->authorCount;
+    }
+
+    /**
+     * @param mixed $authorCount
+     */
+    public function setAuthorCount($authorCount): void
+    {
+        $this->authorCount = $authorCount;
+    }
+
 //    /**
 //     * @ORM\Column(type="blob", nullable=true)
 //     */

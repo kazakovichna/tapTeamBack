@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Service;
+use App\Entity\Author;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,6 +44,7 @@ class BookService
             $bookJsonProto->bookName = $book->getBookName();
             $bookJsonProto->bookDescription = $book->getBookDescription();
             $bookJsonProto->bookYear = $book->getBookYear();
+            $bookJsonProto->authorCount = $book->getAuthorCount();
 
             $bookAuthorMas = [];
             foreach ($book->getAuthorList()->toArray() as $authArr) {
@@ -77,6 +79,7 @@ class BookService
                 'status' => Response::HTTP_INTERNAL_SERVER_ERROR
             ];
         }
+        var_dump($requestData->chosenAuthor);
 
         // Валидируем имя и год для добавление в бд
         if ($requestData->bookName === null ||
@@ -85,6 +88,8 @@ class BookService
             $requestData->bookYear === null ||
             strlen($requestData->bookYear) === 0 ||
             strlen($requestData->bookYear) > 4 ||
+            strlen($requestData->chosenAuthor) === 0 ||
+            strlen($requestData->chosenAuthor) > 255 ||
             !preg_match("/^\d+$/", $requestData->bookYear)) {
 
             return [
@@ -93,9 +98,22 @@ class BookService
             ];
         }
 
+        if ( $this->authorRepository->findOneBy(['authorName' => $requestData->chosenAuthor]) === null ) {
+            echo "we dont find any author, lets create a new one author";
+            $authorData = new Author();
+            $authorData->setAuthorName($requestData->chosenAuthor);
+            $authorData->setBookCount(1);
+
+            $this->authorRepository->add($authorData, true);
+        }
+
+        $curAuthor = $this->authorRepository->findOneBy(['authorName' => $requestData->chosenAuthor]);
+
         $bookData = new Book();
         $bookData->setBookName($requestData->bookName);
         $bookData->setBookYear($requestData->bookYear);
+        $bookData->addAuthorList($curAuthor);
+        $bookData->setAuthorCount(1);
 
         $this->bookRepository->add($bookData, true);
 
@@ -209,6 +227,7 @@ class BookService
                     $authToRemove = $this->authorRepository->findOneBy(['authorName'=>$bookOne->getAuthorName()]);
 
                     $book->removeAuthorList($authToRemove);
+                    $book->setAuthorCount($book->getAuthorCount() - 1);
                     $oldBookCount = $authToRemove->getBookCount();
                     $authToRemove->setBookCount($oldBookCount - 1);
                     $this->entityManager->flush();
@@ -264,6 +283,9 @@ class BookService
                     $authDB->setBookCount($oldBookCount + 1);
                     $this->entityManager->flush();
 
+                    $book->setAuthorCount($book->getAuthorCount() + 1);
+                    $this->entityManager->flush();
+
                     return [
                         'data' => 'Author add to db',
                         'status' => Response::HTTP_OK
@@ -291,6 +313,9 @@ class BookService
     public function deleteBook($id): array
     {
         $deletedBook = $this->bookRepository->findOneBy(["id"=>$id]);
+        foreach ($deletedBook->getAuthorList() as $author) {
+            $author->setBookCount($author->getBookCount() - 1);
+        }
         $this->bookRepository->remove($deletedBook, true);
 
         if ($this->bookRepository->findOneBy(["id"=>$id]) !== null) {
