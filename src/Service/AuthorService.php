@@ -66,7 +66,7 @@ class AuthorService
             return 'Empty Object Data Error 500';
         }
         // Проверяем нет ли уже такого автора
-        if ($this->authorRepository->findOneBy(['author_name'=>$requestData->authorName]) !== null) {
+        if ($this->authorRepository->findOneBy(['authorName'=>$requestData->authorName]) !== null) {
             return 'Author already exist error 500';
         }
         // Валидируем данные на длинну от 1 до 255
@@ -108,7 +108,7 @@ class AuthorService
     {
         $sql = "SELECT book_name FROM book AS b 
                 INNER JOIN book_author AS ba ON b.id = ba.book_id 
-                GROUP BY b.book_name HAVING count(ba.book_id) > 2";
+                GROUP BY b.id HAVING count(ba.book_id) > 2";
 
         $connParams = [
             'url' => "mysql://njMJc055yS:qh9OaFysQc@remotemysql.com:3306/njMJc055yS?serverVersion=5.7&charset=utf8mb4"
@@ -127,7 +127,7 @@ class AuthorService
             ->from('App:Book', 'b')
             ->leftJoin('b.authorList', 'a')
             ->having('COUNT(a.id) > 2')
-            ->groupBy('b.bookName')
+            ->groupBy('b.id')
             ->getQuery();
 
         return json_encode($query->getResult());

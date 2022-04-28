@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\BookService;
+use function Amp\Dns\resolver;
 
 class BookController extends AbstractController
 {
@@ -89,4 +90,69 @@ class BookController extends AbstractController
             ['content-type'=> 'json']
         );
     }
+
+    /**
+     * @Route("book/{id}/updatesimpledata", name="updatesimpledata", methods={"POST"})
+     *
+     * @param Request $request
+     * @param $id
+     *
+     * @return Response
+     */
+    public function updateBookSimpleData (Request $request, $id): Response
+    {
+        $jsonResponse = $this->bookService->updateBookSimpleData($request, $id);
+
+        return new Response(
+            $jsonResponse['data'],
+            $jsonResponse['status'],
+            ['content-type'=> 'json']
+        );
+    }
+
+    /**
+     * @Route ("book/{id}/updatebookauthorname", name="updatebookauthorname", methods={"POST"})
+     *
+     * @param Request $request
+     * @param $id
+     *
+     * @return void
+     */
+    public function updateBookAuthorName (Request $request, $id): Response
+    {
+        $jsonResponse = $this->bookService->updateBookAuthorName($request, $id);
+
+        return new Response(
+            $jsonResponse['data'],
+            $jsonResponse['status'],
+            ['content-type'=> 'json']
+        );
+    }
+
+    /**
+     * @Route("book/{id}/updatebookdeleteauthor", name="updatebookdeleteauthor", methods={"POST"})
+     *
+     * @param Request $request
+     * @param $id
+     *
+     * @return void
+     */
+    public function updateBookDeleteAuthor (Request $request, $id): Response
+    {
+        $jsonResponse = $this->bookService->updateBookDeleteAuthor($request, $id);
+
+        return new Response(
+            $jsonResponse['data'],
+            $jsonResponse['status'],
+            ['content-type'=> 'json']
+        );
+    }
+    public function updateBookAddAuthor ()
+    {}
 }
+
+
+
+
+
+
