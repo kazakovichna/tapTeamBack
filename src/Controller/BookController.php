@@ -53,25 +53,6 @@ class BookController extends AbstractController
     }
 
     /**
-     * @Route("/book/{id}", name="update", methods={"POST"})
-     *
-     * @param Request $request
-     * @param $id
-     *
-     * @return Response
-     */
-    public function updateBook(Request $request, $id): Response
-    {
-        $jsonResponse = $this->bookService->updateBook($request, $id);
-
-        return new Response(
-            $jsonResponse['data'],
-            $jsonResponse['status'],
-            ['content-type'=> 'json']
-        );
-    }
-
-    /**
      * @Route("book/{id}", name="deleteBook", methods={"DELETE"})
      *
      * @param $id
@@ -92,7 +73,7 @@ class BookController extends AbstractController
     }
 
     /**
-     * @Route("book/{id}/updatesimpledata", name="updatesimpledata", methods={"POST"})
+     * @Route("book/{id}/updateSimpleData", name="updatesimpledata", methods={"POST"})
      *
      * @param Request $request
      * @param $id
@@ -111,7 +92,7 @@ class BookController extends AbstractController
     }
 
     /**
-     * @Route ("book/{id}/updatebookauthorname", name="updatebookauthorname", methods={"POST"})
+     * @Route ("book/{id}/updateBookAuthorName", name="updatebookauthorname", methods={"POST"})
      *
      * @param Request $request
      * @param $id
@@ -130,7 +111,7 @@ class BookController extends AbstractController
     }
 
     /**
-     * @Route("book/{id}/updatebookdeleteauthor", name="updatebookdeleteauthor", methods={"POST"})
+     * @Route("book/{id}/updateBookDeleteAuthor", name="updatebookdeleteauthor", methods={"POST"})
      *
      * @param Request $request
      * @param $id
@@ -147,8 +128,25 @@ class BookController extends AbstractController
             ['content-type'=> 'json']
         );
     }
-    public function updateBookAddAuthor ()
-    {}
+
+    /**
+     * @Route("book/{id}/updateBookAddAuthor", name="updatebookaddauthor", methods={"POST"})
+     *
+     * @param Request $request
+     * @param $id
+     *
+     * @return void
+     */
+    public function updateBookAddAuthor (Request $request, $id): Response
+    {
+        $jsonResponse = $this->bookService->updateBookAddAuthor($request, $id);
+
+        return new Response(
+            $jsonResponse['data'],
+            $jsonResponse['status'],
+            ['content-type'=> 'json']
+        );
+    }
 }
 
 

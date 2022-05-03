@@ -111,7 +111,7 @@ class AuthorService
                 GROUP BY b.id HAVING count(ba.book_id) > 2";
 
         $connParams = [
-            'url' => "mysql://njMJc055yS:qh9OaFysQc@remotemysql.com:3306/njMJc055yS?serverVersion=5.7&charset=utf8mb4"
+            'url' => $_ENV['DATABASE_URL']
         ];
         $conn = DriverManager::getConnection($connParams);
         $stmt = $conn->prepare($sql);

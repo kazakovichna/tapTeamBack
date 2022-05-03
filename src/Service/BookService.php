@@ -10,6 +10,7 @@ use App\Repository\AuthorRepository;
 use App\Repository\BookRepository;
 use App\Entity\Book;
 use Doctrine\Persistence\ManagerRegistry;
+use function Sodium\add;
 
 class BookService
 {
@@ -79,7 +80,6 @@ class BookService
                 'status' => Response::HTTP_INTERNAL_SERVER_ERROR
             ];
         }
-        var_dump($requestData->chosenAuthor);
 
         // Валидируем имя и год для добавление в бд
         if ($requestData->bookName === null ||
@@ -94,28 +94,50 @@ class BookService
 
             return [
                 'data' => 'Invalid Object Data Error 500',
-                'status' => Response::HTTP_INTERNAL_SERVER_ERROR
+                'status' => Response::HTTP_OK
+            ];
+        }
+        if ($this->bookRepository->findOneBy(['bookName' => $requestData->bookName]) !== null) {
+            return [
+                'data' => 'Book already exist',
+                'status' => Response::HTTP_OK
             ];
         }
 
-        if ( $this->authorRepository->findOneBy(['authorName' => $requestData->chosenAuthor]) === null ) {
+
+        $curAuthor = $this->authorRepository->findOneBy(['authorName' => $requestData->chosenAuthor]);
+
+        if ( $curAuthor === null ) {
             echo "we dont find any author, lets create a new one author";
             $authorData = new Author();
             $authorData->setAuthorName($requestData->chosenAuthor);
             $authorData->setBookCount(1);
 
             $this->authorRepository->add($authorData, true);
-        }
 
-        $curAuthor = $this->authorRepository->findOneBy(['authorName' => $requestData->chosenAuthor]);
+            $bookData = new Book();
+            $bookData->setBookName($requestData->bookName);
+            $bookData->setBookYear($requestData->bookYear);
+            $bookData->addAuthorList($authorData);
+
+            $this->bookRepository->add($bookData, true);
+
+            $bookData->setAuthorCount(1);
+            $this->entityManager->flush();
+            return [
+                'data' => 'New Book added successfully',
+                'status' => Response::HTTP_OK
+            ];
+        }
 
         $bookData = new Book();
         $bookData->setBookName($requestData->bookName);
         $bookData->setBookYear($requestData->bookYear);
         $bookData->addAuthorList($curAuthor);
-        $bookData->setAuthorCount(1);
-
         $this->bookRepository->add($bookData, true);
+
+        $bookData->setAuthorCount(1);
+        $this->entityManager->flush();
 
         return [
             'data' => 'New Book added successfully',
@@ -214,7 +236,10 @@ class BookService
 
 
         $currentBook->removeAuthorList($removedAuthor);
+        $authorCount = count($currentBook->getAuthorList()->toArray());
+        $currentBook->setAuthorCount($authorCount);
         $removedAuthor->setBookCount($oldCount - 1);
+
         $this->entityManager->flush();
 
         return [
@@ -223,9 +248,12 @@ class BookService
         ];
     }
 
-    public function updateBook(Request $request, $id): array
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
+    public function updateBookAddAuthor(Request $request, $id): array
     {
-        // Получает тело запроса и проверяем что оно не пустое, так как нам нужно обновляться
         $requestData = json_decode($request->getContent());
         if ($requestData === null) {
 
@@ -235,9 +263,15 @@ class BookService
             ];
         }
 
-        // Получаем книгу из бд и проверяем что он сущесвтует
-        $book = $this->bookRepository->findOneBy(['id'=>$id]);
-        if (!$book) {
+        if (strlen($requestData->authorName) == 0 || strlen($requestData->authorName) > 255) {
+            return [
+                'data' => 'Invalid authorName',
+                'status' => Response::HTTP_INTERNAL_SERVER_ERROR
+            ];
+        }
+
+        $updatedBook = $this->bookRepository->findOneBy(['id'=>$id]);
+        if (!$updatedBook) {
 
             return [
                 'data' => 'Book not found',
@@ -245,166 +279,40 @@ class BookService
             ];
         }
 
-        // Проверка всех данных на длину пустоту сразу чтобы потом не проверять
-        $isDataValid = $this->validateRequestData($requestData);
-        if ($isDataValid === false) {
+        $addAuthor = $this->authorRepository->findOneBy(['authorName'=>$requestData->authorName]);
+        if ($addAuthor === null) {
+            echo 'year author is empty';
+            $newAuthor = new Author();
+            $newAuthor->setAuthorName($requestData->authorName);
+            $newAuthor->setBookCount(0);
+
+            $this->authorRepository->add($newAuthor, true);
+
+            $updatedBook->addAuthorList($newAuthor);
+            $this->entityManager->flush();
+
+            $oldCount = $updatedBook->getAuthorCount();
+            $updatedBook->setAuthorCount($oldCount + 1);
+
+            $this->entityManager->flush();
 
             return [
-                'data' => 'Invalid data',
-                'status' => Response::HTTP_INTERNAL_SERVER_ERROR
-            ];
-        }
-
-        return $this->updateAuthorsOfBook($requestData, $book);
-    }
-
-    // Данная функция проверяет данные которые пришли для обновления книги
-    // Проверяет Имя, Описание на длину 0 < X <= 255,
-    // Год на длину от 0 до 4 и на то что он состоит из цифр
-    // А так же что массив авторов не пустой, у книги должен быть автор
-    // У Голандца должен быть капитан
-    public function validateRequestData(\stdClass $requestData): bool {
-        if ($requestData->bookName === '' ||
-            strlen($requestData->bookName) > 255 ||
-            strlen($requestData->bookDescription) > 255 ||
-            $requestData->bookYear === '' ||
-            !preg_match("/^\d+$/", $requestData->bookYear) ||
-            strlen($requestData->bookYear <= 4) ||
-            count($requestData->authorList) === 0) {
-
-            return false;
-        }
-
-        foreach ($requestData->authorList as $auth) {
-            if (strlen($auth->authorName) === 0 || strlen($auth->authorName) > 255) {
-
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    // Эта функция обновляет массив авторов и проверяет его на все условия:
-    // Добавление автора, изменение имени автора, удаление автора.
-    public function updateAuthorsOfBook(\stdClass $requestData, Book $book): array
-    {
-        // Обновление имени книги
-        if ($requestData->bookName != $book->getBookName()) {
-            $book->setBookName($requestData->bookName);
-            $this->entityManager->flush();
-        }
-
-        // Обновление описание книги
-        if ($requestData->bookDescription != $book->getBookDescription()) {
-            $book->setBookDescription($requestData->bookDescription);
-            $this->entityManager->flush();
-        }
-
-        // Обновление года издания книги
-        if ($requestData->bookYear !== $book->getBookYear()) {
-            $book->setBookYear($requestData->bookYear);
-            $this->entityManager->flush();
-        }
-
-        // Далее идет самое сложное проверка и обновление авторов у книги
-
-        // Part 1
-        // Проверка на удаление автора.
-        // Проверим и сравним длину входящих и имеющихся данных.
-        // Если не равны и входящий массив меньше, то найти того автора и отвязать его
-        if (count($requestData->authorList) < count($book->getAuthorList())) {
-            foreach ($book->getAuthorList() as $bookOne) {
-                $deletedAuth = null;
-                foreach ($requestData->authorList as $item => $auth) {
-                    if ($bookOne->getId() === $auth->authorId) {
-                        $deletedAuth = $auth->authorId;
-                        break;
-                    }
-                }
-                if ($deletedAuth === null) {
-                    $authToRemove = $this->authorRepository->findOneBy(['authorName'=>$bookOne->getAuthorName()]);
-
-                    $book->removeAuthorList($authToRemove);
-                    $oldAuthCount = $book->getAuthorCount();
-                    $book->setAuthorCount( $oldAuthCount - 1);
-                    $oldBookCount = $authToRemove->getBookCount();
-                    $authToRemove->setBookCount($oldBookCount - 1);
-                    $this->entityManager->flush();
-                }
-            }
-
-            return [
-                'data' => 'Author Delete Success',
+                'data' => 'Add new author to dataBase and add it to this book)',
                 'status' => Response::HTTP_OK
             ];
         }
 
-        // Part 2
-        // Проверка на обновление или добавление автора
-        foreach ($requestData->authorList as $auth) {
-            $isAuthorExistInBook = false;
+        $updatedBook->addAuthorList($addAuthor);
+        $this->entityManager->flush();
 
-            foreach ($book->getAuthorList() as $dbAuth) {
-                $authName = $dbAuth->getAuthorName();
-                $authId = $dbAuth->getId();
-
-                // Если совпадает id, name автора то ничего не делать
-                if ($auth->authorName === $authName && $auth->authorId === $authId) {
-                    $isAuthorExistInBook = true;
-
-                    break;
-
-                    // Если пользователь хочет добавить нового автора но он написал тоже самое имя ничего не произойдет
-                } elseif ($auth->authorName === $authName && $auth->authorId === null) {
-                    // Выход из этого цикла
-                    continue;
-
-                    // Если пользователь хочет поменять имя автора прямо в списке книг, меняем в бд
-                } elseif ($auth->authorName !== $authName && $auth->authorId === $authId) {
-                    echo 'I see you decide to change some author name so okay I gonna remember it))';
-                    $isAuthorExistInBook = true;
-
-                    $dbAuth->setAuthorName($auth->authorName);
-                    $this->entityManager->flush();
-
-                    return [
-                        'data' => 'Author name updated',
-                        'status' => Response::HTTP_OK
-                    ];
-                }
-            }
-
-            // Если автора нет в списке у книги, то мы ищем его в бд и если находим, то добавляем к массиву
-            if ($isAuthorExistInBook === false) {
-                $authDB = $this->authorRepository->findOneBy(['authorName'=>$auth->authorName]);
-                if ($authDB != null ) {
-//                    echo 'we are find right author in dataBase let add him to book';
-                    echo 'we are here gonna to push author';
-                    $book->addAuthorList($authDB);
-                    $oldBookCount = $authDB->getBookCount();
-                    $authDB->setBookCount($oldBookCount + 1);
-                    $this->entityManager->flush();
-
-//                    $book->setAuthorCount($book->getAuthorCount() + 1);
-//                    $this->entityManager->flush();
-
-                    return [
-                        'data' => 'Author add to db',
-                        'status' => Response::HTTP_OK
-                    ];
-                } else {
-
-                    return [
-                        'data' => 'Author doesnt exist in database please create him first',
-                        'status' => Response::HTTP_NOT_FOUND
-                    ];
-                }
-            }
-        }
+        $oldCount = $updatedBook->getAuthorCount();
+        $updatedBook->setAuthorCount($oldCount + 1);
+//        $oldCount = $addAuthor->getBookCount();
+//        $addAuthor->setBookCount(0);
+        $this->entityManager->flush();
 
         return [
-            'data' => 'All up to date',
+            'data' => 'Add author to book successfully',
             'status' => Response::HTTP_OK
         ];
     }

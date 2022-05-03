@@ -6,7 +6,6 @@ use App\Entity\Author;
 use App\Entity\Book;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
-use function Doctrine\DBAL\Connection;
 
 class UserEventListener
 {
@@ -27,23 +26,34 @@ class UserEventListener
 
         if (($argData instanceof Book) === false) {
             echo 'It is not a book Mister whats the deal';
+
             return;
         }
+
+//        if ($argData->getAuthorCount() === count($argData->getAuthorList()->toArray())) {
+//            echo 'its not necessary to update authors';
+//
+//            return;
+//        }
 
         foreach ($argData->getAuthorList()->toArray() as $bookAuthor) {
 
             $entityManager = $args->getObjectManager()->getRepository(Author::class);
             $author = $entityManager->findOneBy(['authorName'=>$bookAuthor->getAuthorName()]);
 
-            echo " author id " . $author->getId() . " author name " . $author->getAuthorName();
+            echo " author name " . $author->getAuthorName() . " ";
 
             $sql = "UPDATE author SET book_count =
                   (SELECT count(*) FROM book_author
                   WHERE author_id = ?) WHERE id = ?";
 
             $connParams = [
-                'url' => 'mysql://njMJc055yS:qh9OaFysQc@remotemysql.com:3306/njMJc055yS'
+                'url' => $_ENV['DATABASE_URL']
             ];
+
+//            $connParams = [
+//                'url' => 'mysql://njMJc055yS:qh9OaFysQc@remotemysql.com:3306/njMJc055yS'
+//            ];
 
 
             $conn = DriverManager::getConnection($connParams);
@@ -53,7 +63,7 @@ class UserEventListener
 
             $resultSet = $stmt->executeQuery();
 
-            echo 'author count = '. $author->getBookCount();
+            echo 'author count = '. $author->getBookCount(). " ";
         }
 
     }
