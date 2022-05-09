@@ -30,12 +30,6 @@ class UserEventListener
             return;
         }
 
-//        if ($argData->getAuthorCount() === count($argData->getAuthorList()->toArray())) {
-//            echo 'its not necessary to update authors';
-//
-//            return;
-//        }
-
         foreach ($argData->getAuthorList()->toArray() as $bookAuthor) {
 
             $entityManager = $args->getObjectManager()->getRepository(Author::class);
@@ -50,11 +44,6 @@ class UserEventListener
             $connParams = [
                 'url' => $_ENV['DATABASE_URL']
             ];
-
-//            $connParams = [
-//                'url' => 'mysql://njMJc055yS:qh9OaFysQc@remotemysql.com:3306/njMJc055yS'
-//            ];
-
 
             $conn = DriverManager::getConnection($connParams);
             $stmt = $conn->prepare($sql);

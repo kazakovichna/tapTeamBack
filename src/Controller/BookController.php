@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\BookService;
+use App\Form\BookType;
 use function Amp\Dns\resolver;
 
 class BookController extends AbstractController
@@ -73,7 +74,7 @@ class BookController extends AbstractController
     }
 
     /**
-     * @Route("book/{id}/updateSimpleData", name="updatesimpledata", methods={"POST"})
+     * @Route("book/{id}/updateSimpleData", name="updateSimpleData", methods={"POST"})
      *
      * @param Request $request
      * @param $id
@@ -92,7 +93,7 @@ class BookController extends AbstractController
     }
 
     /**
-     * @Route ("book/{id}/updateBookAuthorName", name="updatebookauthorname", methods={"POST"})
+     * @Route ("book/{id}/updateBookAuthorName", name="updateBookAuthorName", methods={"POST"})
      *
      * @param Request $request
      * @param $id
@@ -111,7 +112,7 @@ class BookController extends AbstractController
     }
 
     /**
-     * @Route("book/{id}/updateBookDeleteAuthor", name="updatebookdeleteauthor", methods={"POST"})
+     * @Route("book/{id}/updateBookDeleteAuthor", name="updateBookDeleteAuthor", methods={"POST"})
      *
      * @param Request $request
      * @param $id
@@ -130,7 +131,7 @@ class BookController extends AbstractController
     }
 
     /**
-     * @Route("book/{id}/updateBookAddAuthor", name="updatebookaddauthor", methods={"POST"})
+     * @Route("book/{id}/updateBookAddAuthor", name="updateBookAddAuthor", methods={"POST"})
      *
      * @param Request $request
      * @param $id

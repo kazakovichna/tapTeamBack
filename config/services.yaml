@@ -41,10 +41,12 @@ services:
         class: App\Admin\BookAdmin
         arguments: [~, App\Entity\Book, ~]
         tags:
-            - { name: sonata.admin, model_class: App\Entity\Book, manager_type: orm, label: Book }
+            - { name: sonata.admin, model_class: App\Entity\Book, manager_type: orm, group: admin, label: Book }
+        public: true
 
     admin.AuthorAdmin:
         class: App\Admin\AuthorAdmin
         arguments: [~, App\Entity\Author, ~]
         tags:
-            - { name: sonata.admin, model_class: App\Entity\Author, manager_type: orm, label: Author }
+            - { name: sonata.admin, model_class: App\Entity\Author, manager_type: orm, group: admin, label: Author }
+        public: true

@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 /**
  * @ORM\Entity(repositoryClass=AuthorRepository::class)
@@ -29,11 +30,14 @@ class Author
 
     /**
      * @ORM\Column(name="book_count", type="integer", nullable=true)
+     * @Groups("author")
      */
     private $bookCount;
 
     /**
-     * @ORM\ManyToMany(targetEntity=Book::class, mappedBy="authorList")
+     * @ORM\ManyToMany(targetEntity="Book", mappedBy="authorList", cascade={"persist"})
+     * @MaxDepth(2)
+     * @Groups("book_detail")
      */
     private $booksList;
 

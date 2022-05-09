@@ -1,0 +1,28 @@
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                          https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Entity\Author" table="author">
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+        <field column="author_name" name="authorName" type="string" nullable="true"/>
+        <field column="book_count" name="bookCount" type="integer" nullable="true"/>
+
+        <many-to-many field="booksList" target-entity="Book">
+<!--            <cascade>-->
+<!--                <cascade-all/>-->
+<!--            </cascade>-->
+            <join-table name="book_author">
+                <join-columns>
+                    <join-column name="author_id" referenced-column-name="id" nullable="false"/>
+                </join-columns>
+                <inverse-join-columns>
+                    <join-column name="book_id" referenced-column-name="id"/>
+                </inverse-join-columns>
+            </join-table>
+        </many-to-many>
+    </entity>
+
+</doctrine-mapping>

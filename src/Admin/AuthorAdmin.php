@@ -2,15 +2,11 @@
 
 namespace App\Admin;
 
-use App\Entity\Book;
-use App\Form\BookType;
 use Sonata\AdminBundle\Show\ShowMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Form\FormMapper;
 
@@ -20,24 +16,18 @@ final class AuthorAdmin extends AbstractAdmin
     {
         $form->add('authorName', TextType::class);
         $form->add('bookCount', IntegerType::class);
-        $form->add('booksList', CollectionType::class, array(
-            'entry_type' => BookType::class,
-            'entry_options' => ['label' => false],
-            'allow_add' => true,
-            'by_reference' => false
-        ));
     }
 
-    protected function configureDatagridFilters(DatagridMapper $datagridMapper): void
+    protected function configureDatagridFilters(DatagridMapper $filter): void
     {
-        $datagridMapper->add('authorName');
+        $filter->add('authorName');
     }
 
-    protected function configureListFields(ListMapper $listMapper): void
+    protected function configureListFields(ListMapper $list): void
     {
-        $listMapper->add('authorName', TextType::class);
-        $listMapper->add('bookCount', IntegerType::class);
-        $listMapper->add(listMapper::NAME_ACTIONS, null, [
+        $list->add('authorName', TextType::class);
+        $list->add('bookCount', IntegerType::class);
+        $list->add(listMapper::NAME_ACTIONS, null, [
             'actions' => [
                 'show' => [],
                 'edit' => [],

@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 /**
  * @ORM\Entity(repositoryClass=BookRepository::class)
@@ -46,6 +47,18 @@ class Book
     private $authorCount;
 
     /**
+     * @ORM\ManyToMany(targetEntity="Author", inversedBy="booksList", cascade={"persist"})
+     * @MaxDepth(3)
+     * @Groups("book")
+     */
+    private $authorList;
+
+    public function __construct()
+    {
+        $this->authorList = new ArrayCollection();
+    }
+
+    /**
      * @return mixed
      */
     public function getAuthorCount()
@@ -59,21 +72,6 @@ class Book
     public function setAuthorCount($authorCount): void
     {
         $this->authorCount = $authorCount;
-    }
-
-//    /**
-//     * @ORM\Column(type="blob", nullable=true)
-//     */
-//    private $book_img;
-
-    /**
-     * @ORM\ManyToMany(targetEntity=Author::class, inversedBy="booksList")
-     */
-    private $authorList;
-
-    public function __construct()
-    {
-        $this->authorList = new ArrayCollection();
     }
 
     public function getId(): ?int

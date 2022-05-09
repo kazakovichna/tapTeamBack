@@ -2,7 +2,6 @@
 
 namespace App\Admin;
 
-use App\Entity\Author;
 use App\Form\AuthorType;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
@@ -14,12 +13,12 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 final class BookAdmin extends AbstractAdmin
 {
-    protected function configureFormFields(FormMapper $formMapper): void
+    protected function configureFormFields(FormMapper $form): void
     {
-        $formMapper->add('bookName', TextType::class);
-        $formMapper->add('bookDescription', TextType::class);
-        $formMapper->add('bookYear', TextType::class);
-        $formMapper->add('authorList', CollectionType::class, array(
+        $form->add('bookName', TextType::class);
+        $form->add('bookDescription', TextType::class);
+        $form->add('bookYear', TextType::class);
+        $form->add('authorList', CollectionType::class, array(
           'entry_type' => AuthorType::class,
           'entry_options' => ['label' => false],
           'allow_add' => true,
@@ -27,17 +26,17 @@ final class BookAdmin extends AbstractAdmin
         ));
     }
 
-    protected function configureDatagridFilters(DatagridMapper $datagridMapper): void
+    protected function configureDatagridFilters(DatagridMapper $filter): void
     {
-        $datagridMapper->add('bookName');
+        $filter->add('bookName');
     }
 
-    protected function configureListFields(ListMapper $listMapper): void
+    protected function configureListFields(ListMapper $list): void
     {
-        $listMapper->add('bookName', TextType::class);
-        $listMapper->add('bookDescription', TextType::class);
-        $listMapper->add('bookYear', TextType::class);
-        $listMapper->add(listMapper::NAME_ACTIONS, null, [
+        $list->add('bookName', TextType::class);
+        $list->add('bookDescription', TextType::class);
+        $list->add('bookYear', TextType::class);
+        $list->add(listMapper::NAME_ACTIONS, null, [
             'actions' => [
                 'show' => [],
                 'edit' => [],
@@ -49,5 +48,7 @@ final class BookAdmin extends AbstractAdmin
     protected function configureShowFields(ShowMapper $show): void
     {
         $show->add('bookName');
+        $show->add('bookDescription');
+        $show->add('bookYear');
     }
 }

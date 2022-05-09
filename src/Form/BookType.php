@@ -2,8 +2,10 @@
 
 namespace App\Form;
 
+use App\Entity\Author;
 use App\Entity\Book;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -11,9 +13,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class BookType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $formBuilder, array $options): void
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $formBuilder
+        $builder
             ->add('bookName', TextType::class)
             ->add('bookDescription', TextType::class)
             ->add('bookYear', TextType::class)

@@ -12,6 +12,13 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\Persistence\ManagerRegistry;
 
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
+use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
+use Doctrine\Common\Annotations\AnnotationReader;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+
 class AuthorService
 {
     /**
@@ -33,24 +40,18 @@ class AuthorService
     public function getAllAuthorSer(): string
     {
         $authors = $this->authorRepository->findAll();
+
+        $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
+        $normalizer = new ObjectNormalizer($classMetadataFactory);
+        $serializer = new Serializer([$normalizer], array(new jsonEncoder()));
+
+        $newAuthors = $serializer->serialize($authors, 'json', ['groups' => ['author']]);
+
         if ($authors === null) {
             return "No authors was found";
         }
 
-        $authorsMas = [];
-
-        foreach ($authors as $author) {
-            $authorJsonProto = new \stdClass();
-
-            // Тут кебаб потому что это поля из бл
-            $authorJsonProto->authorId = $author->getId();
-            $authorJsonProto->authorName = $author->getAuthorName();
-            $authorJsonProto->bookCount = $author->getBookCount();
-
-            $authorsMas[] = $authorJsonProto;
-        }
-
-        return json_encode($authorsMas);
+        return $newAuthors;
     }
 
     /**

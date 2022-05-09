@@ -8,8 +8,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Repository\AuthorRepository;
 use App\Repository\BookRepository;
-use App\Entity\Book;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\Book;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
+use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
+use Doctrine\Common\Annotations\AnnotationReader;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use function Sodium\add;
 
 class BookService
@@ -28,6 +34,12 @@ class BookService
     public function getAllBooks(): array
     {
         $books = $this->bookRepository->findAll();
+
+        $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
+        $normalizer = new ObjectNormalizer($classMetadataFactory);
+        $serializer = new Serializer([$normalizer], array(new jsonEncoder()));
+        $newBook = $serializer->serialize($books, 'json', [ 'groups' => ['book', 'author']]);
+
         if ($books === null) {
 
             return [
@@ -36,32 +48,8 @@ class BookService
             ];
         }
 
-        $bookResponseMas = [];
-
-        foreach ($books as $book) {
-            $bookJsonProto = new \stdClass();
-
-            $bookJsonProto->bookId = $book->getId();
-            $bookJsonProto->bookName = $book->getBookName();
-            $bookJsonProto->bookDescription = $book->getBookDescription();
-            $bookJsonProto->bookYear = $book->getBookYear();
-            $bookJsonProto->authorCount = $book->getAuthorCount();
-
-            $bookAuthorMas = [];
-            foreach ($book->getAuthorList()->toArray() as $authArr) {
-                $authProto = new \stdClass();
-
-                $authProto->authorId = $authArr->getId();
-                $authProto->authorName = $authArr->getAuthorName();
-                $bookAuthorMas[] = $authProto;
-            }
-            $bookJsonProto->authorList = $bookAuthorMas;
-
-            $bookResponseMas[] = $bookJsonProto;
-        }
-
         return [
-            'data' => json_encode($bookResponseMas),
+            'data' =>   $newBook,
             'status' => Response::HTTP_OK
         ];
     }
@@ -82,6 +70,7 @@ class BookService
         }
 
         // Валидируем имя и год для добавление в бд
+        // Тут лучше использовать проверку чем мапинг в форму я считаю, потому что тут нет поля описания
         if ($requestData->bookName === null ||
             strlen($requestData->bookName) === 0 ||
             strlen($requestData->bookName) > 255 ||
@@ -103,7 +92,6 @@ class BookService
                 'status' => Response::HTTP_OK
             ];
         }
-
 
         $curAuthor = $this->authorRepository->findOneBy(['authorName' => $requestData->chosenAuthor]);
 
@@ -169,6 +157,7 @@ class BookService
             ];
         }
 
+        // Обновление названия книги
         if ($requestData->bookName != $updatedBook->getBookName()) {
             $updatedBook->setBookName($requestData->bookName);
         }
@@ -281,7 +270,7 @@ class BookService
 
         $addAuthor = $this->authorRepository->findOneBy(['authorName'=>$requestData->authorName]);
         if ($addAuthor === null) {
-            echo 'year author is empty';
+            // year author not found lets add some new
             $newAuthor = new Author();
             $newAuthor->setAuthorName($requestData->authorName);
             $newAuthor->setBookCount(0);
@@ -307,8 +296,6 @@ class BookService
 
         $oldCount = $updatedBook->getAuthorCount();
         $updatedBook->setAuthorCount($oldCount + 1);
-//        $oldCount = $addAuthor->getBookCount();
-//        $addAuthor->setBookCount(0);
         $this->entityManager->flush();
 
         return [
@@ -333,7 +320,7 @@ class BookService
             echo "book isn't deleted success";
 
             return [
-                'data' => 'Book steel exist in database',
+                'data' => 'Book already exist in database',
                 'status' => Response::HTTP_INTERNAL_SERVER_ERROR
             ];
         }
